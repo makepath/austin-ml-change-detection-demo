@@ -1,4 +1,9 @@
-# planet-regrid-poc
+# Planet Demo
+
+System Requirements:
+```
+CUDA 11
+```
 
 To install the necessary environment:
 ```
