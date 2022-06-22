@@ -11,10 +11,11 @@ from skimage.morphology import (erosion, dilation, closing, opening,
                                 area_closing, area_opening)
 from skimage.measure import label, regionprops, regionprops_table
 from skimage.io import imread, imshow
-from shapely.geometry import Point
 
 import data_config
 from datasets.CD_dataset import CDDataset
+import matplotlib.pyplot as plt
+from fastai.vision import *
 
 knl = np.ones((3,3))
 def multi_dil(im, num, element=knl):
@@ -85,6 +86,7 @@ def load_CD_data(ras1,ras2):
     return (ds,ds_comb,normalized)
 
 def localize_regions(df,ds):
+    from shapely.geometry import Point
     geos = []
     for index,row in df.iterrows():
         geos.append(Point(ds.coords["x"][row["x"]].item(),ds.coords["y"][row["y"]].item()))
@@ -202,3 +204,150 @@ def get_args():
 
     args = parser.parse_args(args=[])
     return args
+
+
+def visual_spot_check(gdf,ds_local,norm_local,predictions_local):
+    ims_17 = []
+    norm_17 = []
+    ims_22 = []
+    norm_22 = []
+    changes = []
+    for index,row in gdf.iterrows():
+        temp_17 = ds_local[0,:3,row['y']-128:row['y']+128,row['x']-128:row['x']+128]
+        norm_temp_17 = norm_local[0,:3,row['y']-128:row['y']+128,row['x']-128:row['x']+128]
+        temp_22 = ds_local[1,:3,row['y']-128:row['y']+128,row['x']-128:row['x']+128]
+        norm_temp_22 = norm_local[1,:3,row['y']-128:row['y']+128,row['x']-128:row['x']+128]
+        change_temp = predictions_local[row['y']-128:row['y']+128,row['x']-128:row['x']+128]
+        if temp_17.shape[1]==0 or temp_17.shape[2]==0 or temp_22.shape[1]==0 or temp_22.shape[2]==0:
+            pass
+        else:
+            ims_17.append(temp_17)
+            norm_17.append(norm_temp_17)
+            ims_22.append(temp_22)
+            norm_22.append(norm_temp_22)
+            changes.append(change_temp)
+    fig, axs = plt.subplots(4,3,figsize=(16,20))
+    for i in range(4):
+        ims_17[i].plot.imshow(ax=axs[i][0])
+        changes[i].plot.imshow(ax=axs[i][1],add_colorbar=False,cmap='gray')
+        ims_22[i].plot.imshow(ax=axs[i][2])
+        axs[i][0].axis('off')
+        axs[i][0].title.set_text('2017')
+        axs[i][1].axis('off')
+        axs[i][1].title.set_text('Changes')
+        axs[i][2].axis('off')
+        axs[i][2].title.set_text('2022')    
+    plt.rcParams.update({'font.size': 14})
+    return fig
+
+
+def grab_patches(gdf,ds_local,norm_local,predictions_local):
+    ims_17 = []
+    norm_17 = []
+    ims_22 = []
+    norm_22 = []
+    changes = []
+    geos = []
+    areas = []
+    for index,row in gdf.iterrows():
+        temp_17 = ds_local[0,:3,row['y']-128:row['y']+128,row['x']-128:row['x']+128]
+        norm_temp_17 = norm_local[0,:3,row['y']-128:row['y']+128,row['x']-128:row['x']+128]
+        temp_22 = ds_local[1,:3,row['y']-128:row['y']+128,row['x']-128:row['x']+128]
+        norm_temp_22 = norm_local[1,:3,row['y']-128:row['y']+128,row['x']-128:row['x']+128]
+        change_temp = predictions_local[row['y']-128:row['y']+128,row['x']-128:row['x']+128]
+        if temp_17.shape[1]==0 or temp_17.shape[2]==0 or temp_22.shape[1]==0 or temp_22.shape[2]==0:
+            pass
+        else:
+            ims_17.append(temp_17)
+            norm_17.append(norm_temp_17)
+            ims_22.append(temp_22)
+            norm_22.append(norm_temp_22)
+            changes.append(change_temp)
+            geos.append(row['geometry'])
+            areas.append(row['area'])
+    patches = {}
+    patches['ims_17'] = ims_17
+    patches['norm_17'] = norm_17
+    patches['ims_22'] = ims_22
+    patches['norm_22'] = norm_22
+    patches['changes'] = changes
+    patches['geos'] = geos
+    patches['area'] = areas
+    return patches
+
+
+def visual_spot_check(patches):
+    fig, axs = plt.subplots(4,3,figsize=(16,20))
+    for i in range(4):
+        patches['ims_17'][i].plot.imshow(ax=axs[i][0])
+        patches['changes'][i].plot.imshow(ax=axs[i][1],add_colorbar=False,cmap='gray')
+        patches['ims_22'][i].plot.imshow(ax=axs[i][2])
+        axs[i][0].axis('off')
+        axs[i][0].title.set_text('2017')
+        axs[i][1].axis('off')
+        axs[i][1].title.set_text('Changes')
+        axs[i][2].axis('off')
+        axs[i][2].title.set_text('2022')    
+    plt.rcParams.update({'font.size': 14})
+    return fig
+
+
+def classify_patches(patches,learner):
+    import torchvision.transforms as T
+    import torchvision.transforms.functional as F
+    pred_17 = []
+    conf_17 = []
+    pred_22 = []
+    conf_22 = []
+    transform = T.Compose([T.ToPILImage(),
+                           T.CenterCrop((224,224)),
+                           T.ToTensor(),
+                       ])
+    for i in range(len(patches['ims_17'])):
+        temp_2017 = patches['ims_17'][i].data
+        temp_2022 = patches['ims_22'][i].data
+        torch_2017 = transform(torch.from_numpy(temp_2017))
+        torch_2022 = transform(torch.from_numpy(temp_2022))
+        temp_2017 = Image(torch_2017.float())
+        temp_2022 = Image(torch_2022.float())
+        p_17 = learner.predict(temp_2017)
+        p_22 = learner.predict(temp_2022)
+        pred_17.append(p_17[1].item())
+        conf_17.append(p_17[2][p_17[1].item()].item())
+        pred_22.append(p_22[1].item())
+        conf_22.append(p_22[2][p_22[1].item()].item())
+    gdf = gpd.GeoDataFrame({'pred_17':[learner.data.classes[x] for x in pred_17],
+                            'conf_17':conf_17,
+                            'pred_22':[learner.data.classes[x] for x in pred_22],
+                            'conf_22':conf_22,
+                            'geometry': patches['geos'],
+                            'area': patches['area'],
+                          },
+                           crs=32614
+                         )
+    gdf = gdf.loc[(gdf['conf_17']>0.55) 
+                  & (gdf['conf_22']>0.55)
+                  & (gdf['area']>500)
+                  & (gdf['pred_22']!='AnnualCrop')
+                  & (gdf['pred_22']!='River')
+                  & (gdf['pred_22']!='PermanentCrop')]
+    gdf = gdf.sort_values(by='area',ascending=False)
+    return gdf
+
+
+def visualize_predictions(gdf,patches,num=5):
+    fig1, axs = plt.subplots(nrows=num,ncols=3,figsize=(16,num*6))
+    gdf = gdf[:num]
+    ind = gdf.index
+    for i in range(num):
+        patches['ims_17'][ind[i]].plot.imshow(ax=axs[i][0])
+        patches['changes'][ind[i]].plot.imshow(ax=axs[i][1],add_colorbar=False,cmap='gray')
+        patches['ims_22'][ind[i]].plot.imshow(ax=axs[i][2])
+        axs[i][0].axis('off')
+        axs[i][0].title.set_text(gdf.loc[ind[i]]['pred_17']+", Conf="+str(round(gdf.loc[ind[i]]['conf_17'],2)))
+        axs[i][1].axis('off')
+        axs[i][1].title.set_text('Changes')
+        axs[i][2].axis('off')
+        axs[i][2].title.set_text(gdf.loc[ind[i]]['pred_22']+", Conf="+str(round(gdf.loc[ind[i]]['conf_22'],2)))
+    plt.rcParams.update({'font.size': 12})
+    return fig1
