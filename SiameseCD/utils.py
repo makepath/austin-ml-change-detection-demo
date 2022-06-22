@@ -2,7 +2,6 @@ import numpy as np
 import xarray as xr
 import rioxarray as rxr
 import pandas as pd
-import geopandas as gpd
 import rasterio as rio
 import torch
 from torch.utils.data import DataLoader
@@ -91,9 +90,9 @@ def localize_regions(df,ds):
     for index,row in df.iterrows():
         geos.append(Point(ds.coords["x"][row["x"]].item(),ds.coords["y"][row["y"]].item()))
     df['geometry'] = geos
-    gdf = gpd.GeoDataFrame(df,crs=32614)
-    gdf = gdf.loc[1:,:]
-    return gdf
+    df = pd.DataFrame(df)
+    df = df.loc[1:,:]
+    return df
 
 
 def get_loader(data_name, img_size=256, batch_size=8, split='test',
@@ -316,38 +315,37 @@ def classify_patches(patches,learner):
         conf_17.append(p_17[2][p_17[1].item()].item())
         pred_22.append(p_22[1].item())
         conf_22.append(p_22[2][p_22[1].item()].item())
-    gdf = gpd.GeoDataFrame({'pred_17':[learner.data.classes[x] for x in pred_17],
+    df = pd.DataFrame({'pred_17':[learner.data.classes[x] for x in pred_17],
                             'conf_17':conf_17,
                             'pred_22':[learner.data.classes[x] for x in pred_22],
                             'conf_22':conf_22,
                             'geometry': patches['geos'],
                             'area': patches['area'],
-                          },
-                           crs=32614
+                          }
                          )
-    gdf = gdf.loc[(gdf['conf_17']>0.55) 
-                  & (gdf['conf_22']>0.55)
-                  & (gdf['area']>500)
-                  & (gdf['pred_22']!='AnnualCrop')
-                  & (gdf['pred_22']!='River')
-                  & (gdf['pred_22']!='PermanentCrop')]
-    gdf = gdf.sort_values(by='area',ascending=False)
-    return gdf
+    df = df.loc[(df['conf_17']>0.55) 
+                  & (df['conf_22']>0.55)
+                  & (df['area']>500)
+                  & (df['pred_22']!='AnnualCrop')
+                  & (df['pred_22']!='River')
+                  & (df['pred_22']!='PermanentCrop')]
+    df = df.sort_values(by='area',ascending=False)
+    return df
 
 
-def visualize_predictions(gdf,patches,num=5):
+def visualize_predictions(df,patches,num=5):
     fig1, axs = plt.subplots(nrows=num,ncols=3,figsize=(16,num*6))
-    gdf = gdf[:num]
-    ind = gdf.index
+    df = df[:num]
+    ind = df.index
     for i in range(num):
         patches['ims_17'][ind[i]].plot.imshow(ax=axs[i][0])
         patches['changes'][ind[i]].plot.imshow(ax=axs[i][1],add_colorbar=False,cmap='gray')
         patches['ims_22'][ind[i]].plot.imshow(ax=axs[i][2])
         axs[i][0].axis('off')
-        axs[i][0].title.set_text(gdf.loc[ind[i]]['pred_17']+", Conf="+str(round(gdf.loc[ind[i]]['conf_17'],2)))
+        axs[i][0].title.set_text(df.loc[ind[i]]['pred_17']+", Conf="+str(round(df.loc[ind[i]]['conf_17'],2)))
         axs[i][1].axis('off')
         axs[i][1].title.set_text('Changes')
         axs[i][2].axis('off')
-        axs[i][2].title.set_text(gdf.loc[ind[i]]['pred_22']+", Conf="+str(round(gdf.loc[ind[i]]['conf_22'],2)))
+        axs[i][2].title.set_text(df.loc[ind[i]]['pred_22']+", Conf="+str(round(df.loc[ind[i]]['conf_22'],2)))
     plt.rcParams.update({'font.size': 12})
     return fig1
