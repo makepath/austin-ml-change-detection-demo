@@ -1,9 +1,11 @@
 # Planet Change Detection Demo
 
-This code scales up the [BIT_CD](https://github.com/justchenhao/BIT_CD)<sup>1</sup> change detection model by leveraging Dask and CUDA to predict changes on large areas (~6750 sq mi of 3m resolution imagery in <5 min).
+This code scales up the [BIT_CD PyTorch change detection model](https://github.com/justchenhao/BIT_CD) by leveraging Dask and CUDA to predict changes on large areas (~6750 sq mi of 3m resolution imagery in <5 min).
 
-<sup>1</sup> Hao Chen, Z., & Zhenwei Shi (2021). Remote Sensing Image Change Detection with Transformers. IEEE Transactions on Geoscience and Remote Sensing, 1-14.
-
+Citation:
+```
+Hao Chen, Z., & Zhenwei Shi (2021). Remote Sensing Image Change Detection with Transformers. IEEE Transactions on Geoscience and Remote Sensing, 1-14.
+```
 ---
 System Requirements:
 ```
