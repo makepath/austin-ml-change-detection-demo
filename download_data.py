@@ -5,15 +5,32 @@ import time
 import numpy as np
 import requests
 from requests.auth import HTTPBasicAuth
+import pickle
+import argparse
 
-PLANET_API_KEY = os.getenv('PLANET_KEY')
+parser = argparse.ArgumentParser(description='Download Planet Data')
+parser.add_argument('--PLANET_API_KEY', metavar='PLANET_API_KEY', type=str, help='Planet API key to download imagery')
+parser.add_argument('--year', metavar='year', type=str, help='Choose 2017 or 2022')
+args = parser.parse_args()
+
+files = pickle.load(open('tiles.p','rb'))
+
+PLANET_API_KEY = args.PLANET_API_KEY
 orders_url = 'https://api.planet.com/compute/ops/orders/v2'
 auth = HTTPBasicAuth(PLANET_API_KEY,'')
 headers = {'content-type':'application/json'}
 
-same_src_products = [
+ims_2017 = [
 	{
-		"item_ids":["20190129_164426_1018", "20200201_163705_0e19"],
+		"item_ids":files['2017_items'][:2],
+		"item_type": "PSScene",
+		"product_bundle": "visual"
+	}
+]
+
+ims_2022 = [
+	{
+		"item_ids":files['2022_items'][:2],
 		"item_type": "PSScene",
 		"product_bundle": "visual"
 	}
@@ -64,21 +81,44 @@ def download_results(results, overwrite=False):
             print('{} already exists, skipping {}'.format(path,name))
 
 
-request = {
-"name":"2017_2022_AustinCD_test",
-"products":same_src_products,
-"metadata":{
-	"stac":{
-	}
-},
-"delivery":{"single_archive":True,
-            "archive_type": "zip"
+request_2017 = {
+	"name":"2017_ims",
+	"products":ims_2017,
+	"metadata":{
+		"stac":{
+		}
+	},
+	"delivery":{
+		"single_archive":True,
+		"archive_type": "zip"
 		}
 }
 
-order_url = place_order(request,auth)
-poll_for_success(order_url,auth)
-r = requests.get(order_url,auth=auth)
-response = r.json()
-results = response['_links']['results']
-download_results(results)
+request_2022 = {
+	"name":"2022_ims",
+	"products": ims_2022,
+	"metadata":{
+		"stac":{
+		}
+	},
+	"delivery":{
+		"single_archive":True,
+		"archive_type": "zip"
+		}
+}
+
+if args.year=='2017':
+	order_url = place_order(request_2017,auth)
+	poll_for_success(order_url,auth)
+	r = requests.get(order_url,auth=auth)
+	response = r.json()
+	results = response['_links']['results']
+	download_results(results)
+
+if args.year=='2022':
+	order_url = place_order(request_2022,auth)
+	poll_for_success(order_url,auth)
+	r = requests.get(order_url,auth=auth)
+	response = r.json()
+	results = response['_links']['results']
+	download_results(results)
