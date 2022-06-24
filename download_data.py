@@ -22,7 +22,7 @@ headers = {'content-type':'application/json'}
 
 ims_2017 = [
 	{
-		"item_ids":files['2017_items'][:2],
+		"item_ids":files['2017_items'],
 		"item_type": "PSScene",
 		"product_bundle": "visual"
 	}
@@ -30,7 +30,7 @@ ims_2017 = [
 
 ims_2022 = [
 	{
-		"item_ids":files['2022_items'][:2],
+		"item_ids":files['2022_items'],
 		"item_type": "PSScene",
 		"product_bundle": "visual"
 	}
