@@ -1,5 +1,5 @@
-# Planet Change Detection Demo
-This repo contains a demo to predict landcover changes and classify areas of interest into landcover types.
+# Austin Change Detection Demo
+This repo contains a demo to predict landcover changes and classify areas of interest into landcover types using [Planet Data](https://www.planet.com).
 
 Landcover change detection is performed by scaling up the [BIT_CD PyTorch change detection model](https://github.com/justchenhao/BIT_CD)<sup>1</sup> by leveraging Dask and CUDA to predict changes on large areas (~6750 sq mi of 3m resolution imagery in <5 min).
 
@@ -23,10 +23,17 @@ conda create --name planet-fastai python=3.9
 conda activate planet-fastai
 pip install -r requirements.txt
 ```
+
 After installing requirements, install PyTorch:
 ```
 python -m pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 -f https://download.pytorch.org/whl/torch_stable.html
 ```
 
-Run the `planet_demo.ipynb` notebook.
+To download the data, you need a Planet API key. To download the data:
+```
+python download_data.py --PLANET_API_KEY <key> --year 2017
+python download_data.py --PLANET_API_KEY <key> --year 2022
+```
+
+After downloading the data, run the `planet_demo.ipynb` notebook.
 
