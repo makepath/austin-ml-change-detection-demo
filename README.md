@@ -41,7 +41,7 @@ gdalbuildvrt 2017.vrt data/2017/*.tif
 gdalbuildvrt 2022.vrt data/2022/*.tif
 
 gdalwarp 2017.vrt 2017.tif
-gdalwarp 2022.vrt 2017.tif
+gdalwarp 2022.vrt 2022.tif
 ```
 
 After setting up the data, run the `planet_demo.ipynb` notebook.
