@@ -35,5 +35,14 @@ python download_data.py --PLANET_API_KEY <key> --year 2017
 python download_data.py --PLANET_API_KEY <key> --year 2022
 ```
 
-After downloading the data, run the `planet_demo.ipynb` notebook.
+After downloading the data, use a tool like GDAL to create a VRT and then a mosaic:
+``` 
+gdalbuildvrt 2017.vrt data/2017/*.tif
+gdalbuildvrt 2022.vrt data/2022/*.tif
+
+gdalwarp 2017.vrt 2017.tif
+gdalwarp 2022.vrt 2017.tif
+```
+
+After setting up the data, run the `planet_demo.ipynb` notebook.
 
