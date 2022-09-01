@@ -2,5 +2,11 @@
 mkdir catalogs
 mkdir catalogs/17_05
 mkdir catalogs/22_05
-wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1JoT5pCLUC2RHcGvj4TzqTL-WmmjbASRy' -O catalogs/17_05/mosaic.tif 
-wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1tPR4udbM9KCFJOBzyJdwrLaA1RPeCDXg' -O catalogs/22_05/mosaic.tif
+fileid="1JoT5pCLUC2RHcGvj4TzqTL-WmmjbASRy"
+filename="catalogs/17_05/mosaic.tif"
+fileid1="1tPR4udbM9KCFJOBzyJdwrLaA1RPeCDXg"
+filename1="catalogs/22_05/mosaic.tif"
+html=`curl -c ./cookie -s -L "https://drive.google.com/uc?export=download&id=${fileid}"`
+curl -Lb ./cookie "https://drive.google.com/uc?export=download&`echo ${html}|grep -Po '(confirm=[a-zA-Z0-9\-_]+)'`&id=${fileid}" -o ${filename}
+html=`curl -c ./cookie -s -L "https://drive.google.com/uc?export=download&id=${fileid1}"`
+curl -Lb ./cookie "https://drive.google.com/uc?export=download&`echo ${html}|grep -Po '(confirm=[a-zA-Z0-9\-_]+)'`&id=${fileid1}" -o ${filename1}
