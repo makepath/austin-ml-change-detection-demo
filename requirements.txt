@@ -13,6 +13,7 @@ ipykernel==6.13.0
 ipyleaflet==0.13.6
 ipython-genutils==0.2.0
 ipywidgets==7.7.0
+jupyterlab>=3
 langcodes==3.3.0
 llvmlite==0.38.0
 locket==1.0.0
