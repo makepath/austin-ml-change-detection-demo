@@ -2,5 +2,5 @@
 mkdir catalogs
 mkdir catalogs/17_05
 mkdir catalogs/22_05
-curl -L -o catalogs/17_05/mosaic.tif 'https://drive.google.com/uc?export=download&id=1JoT5pCLUC2RHcGvj4TzqTL-WmmjbASRy'
-curl -L -o catalogs/22_05/mosaic.tif 'https://drive.google.com/uc?export=download&id=1tPR4udbM9KCFJOBzyJdwrLaA1RPeCDXg'
+wget --no-check-certificate 'https://drive.google.com/uc?export=download&id=1JoT5pCLUC2RHcGvj4TzqTL-WmmjbASRy' -O catalogs/17_05/mosaic.tif 
+wget --no-check-certificate 'https://drive.google.com/uc?export=download&id=1tPR4udbM9KCFJOBzyJdwrLaA1RPeCDXg' -O catalogs/22_05/mosaic.tif
