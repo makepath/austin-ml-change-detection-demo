@@ -1,4 +1,3 @@
-name: demo-env
 channels:
   - conda-forge
 dependencies:
