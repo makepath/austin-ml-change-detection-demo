@@ -1,3 +1,4 @@
+#!/bin/bash
 mkdir catalogs
 mkdir catalogs/17_05
 mkdir catalogs/22_05
