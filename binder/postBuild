@@ -10,3 +10,4 @@ html=`curl -c ./cookie -s -L "https://drive.google.com/uc?export=download&id=${f
 curl -Lb ./cookie "https://drive.google.com/uc?export=download&`echo ${html}|grep -Po '(confirm=[a-zA-Z0-9\-_]+)'`&id=${fileid}" -o ${filename}
 html=`curl -c ./cookie -s -L "https://drive.google.com/uc?export=download&id=${fileid1}"`
 curl -Lb ./cookie "https://drive.google.com/uc?export=download&`echo ${html}|grep -Po '(confirm=[a-zA-Z0-9\-_]+)'`&id=${fileid1}" -o ${filename1}
+python -m pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 -f https://download.pytorch.org/whl/torch_stable.html
