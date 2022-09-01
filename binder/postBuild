@@ -2,5 +2,5 @@
 mkdir catalogs
 mkdir catalogs/17_05
 mkdir catalogs/22_05
-~/.local/bin/gdown 1JoT5pCLUC2RHcGvj4TzqTL-WmmjbASRy -O catalogs/17_05/mosaic.tif
-~/.local/bin/gdown 1tPR4udbM9KCFJOBzyJdwrLaA1RPeCDXg -O catalogs/22_05/mosaic.tif
+gdown https://drive.google.com/file/d/1JoT5pCLUC2RHcGvj4TzqTL-WmmjbASRy/view?usp=sharing -O catalogs/17_05/mosaic.tif
+gdown https://drive.google.com/file/d/1tPR4udbM9KCFJOBzyJdwrLaA1RPeCDXg/view?usp=sharing -O catalogs/22_05/mosaic.tif
