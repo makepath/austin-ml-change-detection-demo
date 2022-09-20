@@ -1,6 +1,6 @@
-dask==2022.8.1
-dask-cuda==22.8.0
-dask-labextension==5.2.0
+dask
+dask-cuda
+dask-labextension
 einops==0.4.1
 fastai==1.0.61
 fsspec==2022.3.0
